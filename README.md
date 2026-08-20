@@ -42,11 +42,25 @@ The categorizer model classifies the question and selects the best of your speci
 
 ## File conversion
 
+Use `Harness.convert` / `Harness.ingest` (same models you registered). Runnable copy: `examples/convert_with_harness.py`.
+
 ```python
-result = harness.convert(path="merchants.json")  # JSON -> CSV
-result = harness.convert(path="report.pdf")      # PDF -> Markdown
-result = harness.convert(path="page.html")       # HTML -> Markdown
-result = harness.convert(data=raw, filename="file.csv", target_mime="application/json")
+print(harness.converters())
+
+# Convert on disk or from bytes
+csv_file = harness.convert(path="merchants.json")              # JSON -> CSV
+md_file = harness.convert(path="page.html")                    # HTML -> Markdown
+pdf_file = harness.convert(path="report.pdf")                  # PDF -> Markdown
+as_json = harness.convert(
+    data=csv_file.content,
+    filename="merchants.csv",
+    target_mime="application/json",
+)
+
+# Convert then index into RAG; categorizer still picks among your models
+harness.ingest(path="policy.html", doc_id="policy")            # convert=True by default
+result = harness.ask("What is the SLA in policy.html?")
+print(result.routing["model_slot_id"], result.answer)
 ```
 
 Built-in pairs:

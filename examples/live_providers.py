@@ -52,8 +52,19 @@ harness = Harness(
     system_prompt="You are a precise enterprise assistant. Cite sources.",
 )
 
-# Convert + index a knowledge file
-# harness.ingest(path="policy.pdf")
+print("Registered converters:", harness.converters())
 
-print(harness.converters())
+# Convert a file, then index the converted text with the same Harness
+# json_csv = harness.convert(path="merchants.json")          # JSON -> CSV
+# html_md = harness.convert(path="policy.html")              # HTML -> Markdown
+# pdf_md = harness.convert(path="report.pdf")                # PDF -> Markdown (ordlane[pdf])
+# csv_json = harness.convert(
+#     data=json_csv.content,
+#     filename="merchants.csv",
+#     target_mime="application/json",
+# )
+# harness.ingest(path="policy.pdf", doc_id="policy")         # convert=True by default
+# result = harness.ask("Summarize the SLA in policy.pdf")
+# print(result.routing["model_slot_id"], result.answer)
+
 print(harness.route("hello").model_slot_id)

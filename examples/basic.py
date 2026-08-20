@@ -30,10 +30,19 @@ harness = Harness(
     dry_run=True,
 )
 
+# Convert through Harness (JSON -> CSV). See also examples/convert_with_harness.py
+converted = harness.convert(
+    data=b'[{"merchant":"acme","mcc":"5411"}]',
+    filename="merchants.json",
+)
+print("converted", converted.source_mime, "->", converted.target_mime)
+print(converted.text)
+
+# ingest(..., convert=True) converts first, then indexes for RAG
 harness.ingest(
     b"# Settlement policy\n\nVisa CNP chargeback window is 120 days.\n",
     filename="settlement_policy.md",
-    convert=False,
+    convert=True,
 )
 result = harness.ask("What is the Visa chargeback window according to settlement_policy.md?")
 print(result.routing)
