@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-ProviderName = Literal["openai", "anthropic", "bedrock", "fake"]
+ProviderName = Literal["openai", "anthropic", "bedrock", "langchain", "fake"]
 RAGKind = Literal["none", "naive", "hybrid", "map_reduce", "custom"]
 Complexity = Literal["simple", "standard", "complex"]
 StorageMode = Literal["READ_AS_IS", "RAG_STORE", "HYBRID"]

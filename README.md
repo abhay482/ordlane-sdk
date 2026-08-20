@@ -2,14 +2,14 @@
 
 Plug-and-play Python layer for any AI stack: one question categorizer, up to five specialist models, file conversion, and swappable RAG (including LangGraph).
 
-Providers out of the box: OpenAI, Anthropic (Claude SDK), Amazon Bedrock.
+Providers out of the box: OpenAI, Anthropic (Claude SDK), Amazon Bedrock, and open-source models via LangChain (Ollama, HuggingFace, vLLM / OpenAI-compatible).
 
 ## Install
 
 ```bash
 pip install -e ".[all]"   # from this repo
 # or extras only:
-pip install -e ".[openai,anthropic,bedrock,langgraph,pdf,html]"
+pip install -e ".[openai,anthropic,bedrock,langchain,langgraph,s3,pdf,html]"
 ```
 
 ## Quick start
@@ -39,6 +39,42 @@ print(result.answer)
 ```
 
 The categorizer model classifies the question and selects the best of your specialists. `dry_run=True` or `provider="fake"` runs without API keys.
+
+## Open-source models (LangChain / LangGraph)
+
+Use `provider="langchain"` with Ollama, HuggingFace, or any OpenAI-compatible local server. You can also pass a ready LangChain chat model. See `examples/opensource_langchain.py`.
+
+```python
+from ordlane import Harness, ModelConfig, CategorizerConfig
+# from langchain_ollama import ChatOllama
+
+harness = Harness(
+    models=[
+        ModelConfig(
+            id="llama",
+            provider="langchain",
+            model="ollama:llama3.2",
+            capabilities=["fast", "chat", "rag"],
+            # Or plug any LangChain / LangGraph chat model:
+            # extra={"llm": ChatOllama(model="llama3.2")},
+        ),
+        ModelConfig(
+            id="hf",
+            provider="langchain",
+            model="huggingface:mistralai/Mistral-7B-Instruct-v0.2",
+            capabilities=["reasoning"],
+        ),
+        ModelConfig(
+            id="vllm",
+            provider="langchain",
+            model="openai_compat:meta-llama/Meta-Llama-3-8B-Instruct",
+            capabilities=["rag"],
+            extra={"base_url": "http://localhost:8000/v1"},
+        ),
+    ],
+    categorizer=CategorizerConfig(provider="langchain", model="ollama:llama3.2"),
+)
+```
 
 ## File conversion
 
@@ -73,6 +109,41 @@ Built-in pairs:
 | `text/html` | `text/markdown` |
 
 Register your own converter with `register_converter(...)`.
+
+## Store converted files (local or S3)
+
+Convert and persist without (or with) RAG indexing. See `examples/store_converted.py`.
+
+```python
+from ordlane import LocalStorage, S3Storage
+
+# Convert + write to a local folder
+out = harness.convert(path="merchants.json", store_to="./converted")
+print(out["stored"]["uri"])  # file:///.../merchants.csv
+
+# Convert + store on S3 / MinIO
+out = harness.convert(path="report.pdf", store_to="s3://my-bucket/converted/")
+
+# Convert + store + index into RAG
+harness.ingest(path="policy.html", store_to=LocalStorage("./out"), index=True)
+
+# Convert + store only (skip RAG)
+harness.ingest(path="policy.html", store_to="s3://my-bucket/docs/", index=False)
+
+# Optional harness-wide default destination
+harness = Harness(
+    models=...,
+    categorizer=...,
+    default_store="local://./converted",
+    # default_store="s3://my-bucket/prefix/",
+)
+```
+
+`store_to` accepts:
+
+- `./path`, `/path`, `local://./path`, `file:///path`
+- `s3://bucket/optional/prefix`
+- `LocalStorage(...)` or `S3Storage(bucket=..., prefix=..., endpoint_url=...)`
 
 ## RAG + LangGraph
 
@@ -115,6 +186,7 @@ ANTHROPIC_API_KEY=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=us-east-1
+HUGGINGFACEHUB_API_TOKEN=
 ```
 
 ## Tests

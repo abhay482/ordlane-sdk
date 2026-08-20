@@ -104,3 +104,65 @@ def test_live_fake_provider_not_dry_run():
     )
     result = h.ask("hello there")
     assert "[fake:echo]" in result.answer
+
+
+def test_convert_and_store_local(tmp_path):
+    h = _harness()
+    data = b'[{"merchant":"acme","mcc":"5411"}]'
+    out = h.convert(data=data, filename="merchants.json", store_to=str(tmp_path))
+    assert out["stored"]["kind"] == "local"
+    assert out["conversion"]["to"] == "text/csv"
+    written = tmp_path / "merchants.csv"
+    assert written.exists()
+    assert b"acme" in written.read_bytes()
+
+
+def test_ingest_store_without_index(tmp_path):
+    h = _harness()
+    result = h.ingest(
+        data=b'[{"a":1}]',
+        filename="rows.json",
+        doc_id="rows",
+        store_to=str(tmp_path / "archive"),
+        index=False,
+    )
+    assert result["indexed"] is False
+    assert result["chunks_indexed"] == 0
+    assert result["stored"]["kind"] == "local"
+    assert (tmp_path / "archive" / "rows.csv").exists()
+
+
+def test_langchain_provider_with_custom_llm():
+    class StubLLM:
+        def invoke(self, messages, **kwargs):
+            return type("R", (), {"content": "oss-answer"})()
+
+    h = Harness(
+        [
+            ModelConfig(
+                id="oss",
+                provider="langchain",
+                model="custom",
+                capabilities=["fast", "chat"],
+                extra={"llm": StubLLM()},
+            )
+        ],
+        CategorizerConfig(provider="fake", model="router"),
+        dry_run=False,
+        use_langgraph=False,
+        rag_kind="none",
+    )
+    result = h.ask("hello")
+    assert result.answer == "oss-answer"
+    assert result.routing["provider"] == "langchain"
+
+
+def test_parse_store_uris():
+    from ordlane import LocalStorage, parse_store_to
+
+    local = parse_store_to("./tmp-store")
+    assert isinstance(local, LocalStorage)
+    s3 = parse_store_to("s3://my-bucket/prefix/path")
+    assert s3.kind == "s3"
+    assert s3.bucket == "my-bucket"
+    assert s3.prefix == "prefix/path"

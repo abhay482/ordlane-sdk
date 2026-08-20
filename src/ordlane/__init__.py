@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from ordlane.convert import ConversionResult, convert_bytes, convert_file, list_converters, register_converter
-from ordlane.exceptions import ConfigError, ConversionError, OrdlaneError, ProviderError, RAGError
+from ordlane.exceptions import ConfigError, ConversionError, OrdlaneError, ProviderError, RAGError, StorageError
 from ordlane.harness import Harness
 from ordlane.rag import CallableRAG, InMemoryRAG, LangChainVectorRAG, build_langgraph_rag
+from ordlane.storage import LocalStorage, S3Storage, parse_store_to
 from ordlane.types import CategorizerConfig, ModelConfig, QueryResult, RetrievedChunk, RouteDecision
 
 __all__ = [
@@ -20,6 +21,9 @@ __all__ = [
     "CallableRAG",
     "LangChainVectorRAG",
     "build_langgraph_rag",
+    "LocalStorage",
+    "S3Storage",
+    "parse_store_to",
     "convert_bytes",
     "convert_file",
     "list_converters",
@@ -28,6 +32,7 @@ __all__ = [
     "ConfigError",
     "ProviderError",
     "ConversionError",
+    "StorageError",
     "RAGError",
 ]
 

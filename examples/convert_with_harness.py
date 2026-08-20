@@ -86,6 +86,13 @@ indexed = harness.ingest(path=str(ROOT / "policy.html"), doc_id="settlement_poli
 print("\nIngest conversion:", indexed["conversion"])
 print("Chunks indexed:", indexed["chunks_indexed"])
 
+# Convert + store to local disk (no RAG). See examples/store_converted.py for S3.
+stored = harness.convert(
+    path=str(ROOT / "merchants.json"),
+    store_to=str(ROOT / "out"),
+)
+print("\nStored converted file:", stored["stored"]["uri"])
+
 # Optional: ingest already-converted bytes under a stable filename
 harness.ingest(
     data=csv_result.content,
