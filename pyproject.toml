@@ -51,7 +51,7 @@ all = [
 dev = ["pytest>=8.0"]
 
 [project.urls]
-Homepage = "https://github.com/ordlane/ordlane-sdk"
+Homepage = "https://github.com/abhay482/ordlane-sdk"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

@@ -1,8 +1,34 @@
 # Ordlane SDK
 
+[![CI](https://github.com/abhay482/ordlane-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/abhay482/ordlane-sdk/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-pytest-brightgreen.svg)](tests/)
+
 Plug-and-play Python layer for any AI stack: one question categorizer, up to five specialist models, file conversion, and swappable RAG (including LangGraph).
 
 Providers out of the box: OpenAI, Anthropic (Claude SDK), Amazon Bedrock, and open-source models via LangChain (Ollama, HuggingFace, vLLM / OpenAI-compatible).
+
+## Demo
+
+Routing three questions to different specialists (`dry_run=True`, no API keys):
+
+![Routing demo](docs/assets/routing-demo.gif)
+
+```bash
+PYTHONPATH=src python examples/demo_routing.py
+```
+
+## Routing modes
+
+Ordlane supports two categorization paths; the harness picks automatically:
+
+| Mode | When | How |
+|------|------|-----|
+| **LLM categorizer** | `dry_run=False` and a live categorizer provider | Categorizer model returns JSON (`model_id`, `needs_rag`, `complexity`); unknown IDs fall back to the first specialist |
+| **Heuristic router** | `dry_run=True`, `provider="fake"`, or offline demos | Regex/keyword rules in `categorizer.py` - zero API calls, deterministic, used in tests |
+
+Use the heuristic path for CI, local demos, and cost-free development. Switch to the LLM categorizer for production routing quality.
 
 ## Architecture
 
@@ -92,7 +118,7 @@ print(result.routing)   # which specialist was chosen
 print(result.answer)
 ```
 
-The categorizer model classifies the question and selects the best of your specialists. `dry_run=True` or `provider="fake"` runs without API keys.
+The categorizer picks a specialist using one of the routing modes above. `dry_run=True` or `provider="fake"` runs without API keys.
 
 ## Open-source models (LangChain / LangGraph)
 
