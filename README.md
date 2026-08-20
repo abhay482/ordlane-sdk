@@ -6,37 +6,57 @@ Providers out of the box: OpenAI, Anthropic (Claude SDK), Amazon Bedrock, and op
 
 ## Architecture
 
-```text
-                    ????????????????????
-                    ?    User Query    ?
-                    ????????????????????
-                             ?
-                    ????????????????????
-                    ?   Categorizer    ?
-                    ????????????????????
-                             ?
-             ?????????????????????????????????
-             ?               ?               ?
-          Fast Model      Docs Model      Reasoning
-             ?               ?               ?
-             ?????????????????????????????????
-                             ?
-                    ????????????????????
-                    ?       RAG        ?
-                    ????????????????????
-                             ?
-                    ????????????????????
-                    ?Context Optimizer ?
-                    ????????????????????
-                             ?
-                    ????????????????????
-                    ? Provider Layer   ?
-                    ????????????????????
-                             ?
-                    Answer + Telemetry
+Two paths share the same `Harness`: **ingest** (files in) and **ask** (questions out).
+
+```mermaid
+flowchart TB
+  subgraph ingest["Ingest path: convert() and ingest()"]
+    direction TB
+    files["Source files\nJSON, CSV, PDF, HTML"]
+    conv["File converter\nJSON to CSV, PDF to MD, HTML to MD"]
+    store["Optional storage\nlocal path or S3 bucket"]
+    index["RAG index\nInMemory, LangChain vector, custom fn"]
+    files --> conv
+    conv --> store
+    conv --> index
+  end
+
+  subgraph query["Query path: ask()"]
+    direction TB
+    user["User query"]
+    cat["Categorizer\n1 routing model"]
+    route{"Route to specialist\n1 of up to 5 models"}
+    spec["Selected specialist\nfast, docs, reasoning, ..."]
+    rag["RAG retrieve\nnaive, hybrid, map_reduce\noptional LangGraph node"]
+    opt["Context optimizer\ntoken budget, relevance trim"]
+    prov["Provider layer"]
+    out["Answer + telemetry\ncost, latency, routing metadata"]
+    user --> cat --> route --> spec
+    spec --> rag --> opt --> prov --> out
+  end
+
+  index -.->|"retrieved chunks"| rag
+
+  subgraph providers["Pluggable providers"]
+    direction LR
+    p1["OpenAI"]
+    p2["Claude"]
+    p3["Bedrock"]
+    p4["LangChain OSS\nOllama, HuggingFace, vLLM"]
+  end
+
+  prov --> providers
 ```
 
-Convert / ingest can also write files to local disk or S3 before (or instead of) indexing.
+| Stage | Role |
+|-------|------|
+| **Categorizer** | Classifies the question and picks the cheapest capable specialist |
+| **Specialists** | Up to 5 models you register (different providers per slot) |
+| **RAG** | Swappable retriever; LangGraph wraps retrieve then assemble |
+| **Converter** | Normalizes files before index or S3/local store |
+| **Storage** | Optional `store_to` on convert/ingest; skip RAG with `index=False` |
+
+Convert / ingest can write to disk or S3 **without** indexing when you only need persistence.
 
 ## Install
 
