@@ -277,3 +277,73 @@ pytest
 ```
 
 Boundary coverage includes routing fallbacks, RAG assembly modes, conversion edge cases, and storage failure paths.
+
+## Roadmap
+
+Planned features and current progress. Status updates as work lands on `main`.
+
+**Overall progress: 0%** (0 / 4 shipped)
+
+| # | Feature | Status | Progress |
+|---|---------|--------|----------|
+| 1 | [Observation layer](#1-observation-layer) | Planned | ![0%](https://progress-bar.xyz/0/?title=0%25) |
+| 2 | [Monitoring & dashboard](#2-monitoring--dashboard) | Planned | ![0%](https://progress-bar.xyz/0/?title=0%25) |
+| 3 | [Conversation context](#3-conversation-context) | Planned | ![0%](https://progress-bar.xyz/0/?title=0%25) |
+| 4 | [Multi-agent framework](#4-multi-agent-framework) | Planned | ![0%](https://progress-bar.xyz/0/?title=0%25) |
+
+```mermaid
+gantt
+  title Ordlane SDK roadmap (planned)
+  dateFormat YYYY-MM
+  axisFormat %b %Y
+  section Observability
+    Observation layer (LangSmith / Langfuse) :obs, 2026-09, 2M
+    Monitoring & dashboard                  :mon, after obs, 2M
+  section Agent platform
+    Conversation context                    :ctx, 2026-11, 2M
+    Multi-agent framework                   :multi, after ctx, 3M
+```
+
+### 1. Observation layer
+
+**Status:** Planned · **Progress:** 0%
+
+Integrate an open-source observability stack (e.g. [LangSmith](https://docs.smith.langchain.com/), [Langfuse](https://langfuse.com/), or OpenTelemetry) so every `ask()` and `ingest()` call emits structured spans: routing decisions, RAG retrieval, provider latency, token usage, and cost.
+
+- [ ] Trace hooks on categorizer, specialist, and RAG stages
+- [ ] Export spans to a pluggable backend (Langfuse, OTLP, local JSON)
+- [ ] Correlate ingest and query paths with a shared `trace_id`
+
+### 2. Monitoring & dashboard
+
+**Status:** Planned · **Progress:** 0%
+
+A lightweight monitoring layer on top of the observation data: structured logs, distributed traces, and a mini dashboard to inspect runs, replay failures, and tune routing without leaving the browser.
+
+- [ ] Structured log sink (stdout, file, or remote)
+- [ ] Trace viewer for recent `Harness` runs
+- [ ] Mini dashboard: live routing stats, cost/latency charts, model health
+
+### 3. Conversation context
+
+**Status:** Planned · **Progress:** 0%
+
+Session and thread memory so Ordlane can power multi-turn chat agents, not just single-shot Q&A. Context carries across turns while the categorizer still picks the right specialist per message.
+
+- [ ] `ConversationContext` with turn history and optional summarization
+- [ ] `Harness.chat()` API alongside `ask()`
+- [ ] Pluggable memory backends (in-memory, Redis, SQLite)
+
+### 4. Multi-agent framework
+
+**Status:** Planned · **Progress:** 0%
+
+An orchestration layer to compose multiple agents from Ordlane and external sources (OpenAI Assistants, Claude, Bedrock Agents, LangGraph graphs) into coordinated workflows: handoffs, parallel fan-out, and shared state.
+
+- [ ] Agent adapter protocol (Ordlane specialist, OpenAI, Anthropic, Bedrock, custom)
+- [ ] Workflow primitives: sequential, parallel, conditional routing
+- [ ] Shared context and observability across agent boundaries
+
+---
+
+To request a feature or track an issue, open a [GitHub issue](https://github.com/abhay482/ordlane-sdk/issues).
